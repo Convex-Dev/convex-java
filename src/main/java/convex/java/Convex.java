@@ -1,17 +1,13 @@
 package convex.java;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.function.Consumer;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
 
@@ -39,6 +35,14 @@ public class Convex {
 		convex.setAddress(address);
 		convex.setKeyPair(keyPair);
 		return convex;
+	}
+	
+	public Address getAddress() {
+		return address;
+	}
+	
+	public AKeyPair getKeyPair() {
+		return keyPair;
 	}
 	
 	private void setKeyPair(AKeyPair keyPair) {
