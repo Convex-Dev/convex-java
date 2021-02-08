@@ -1,5 +1,10 @@
 package convex.java;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -136,4 +141,25 @@ public class JSON {
         sb.append(WHITESPACE, 0, count);
         return sb;
     }
+
+    /**
+     * Parses a JSON input stream
+     * @param <T> Return type
+     * @param content Any InputStream containing JSON conent in UTF-8
+     * @return Parsed JSON Object
+     */
+	@SuppressWarnings("unchecked")
+	public static <T> T parse(InputStream content) {
+		JSONParser parser=new JSONParser();
+		Reader reader=new InputStreamReader(content, StandardCharsets.UTF_8);
+		Object parsed;
+		try {
+			parsed = parser.parse(reader);
+		} catch (IOException e) {
+			throw new Error("IO Error reading JSON: " + e.getMessage(), e);
+		}  catch (ParseException e) {
+        	throw new Error("Error in JSON parsing: " + e.getMessage(), e);
+        }
+		return (T) parsed;
+	}
 }
