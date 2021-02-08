@@ -1,6 +1,7 @@
 package convex.java;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -12,6 +13,8 @@ import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
 
 import convex.core.crypto.AKeyPair;
+import convex.core.crypto.ASignature;
+import convex.core.crypto.Hash;
 import convex.core.data.Address;
 
 public class Convex {
@@ -37,6 +40,10 @@ public class Convex {
 		return convex;
 	}
 	
+	public long getSequence() {
+		return sequence;
+	}
+	
 	public Address getAddress() {
 		return address;
 	}
@@ -58,7 +65,7 @@ public class Convex {
 	 * @param code Source code in Convex Lisp
 	 * @return Result of query, as parsed JSON Object from query response
 	 */
-	public <T> T query(String code) {
+	public Map<String,Object> query(String code) {
 		String json=buildJsonQuery(code);
 		return doPost(url+"/api/v1/query",json);
 	}
@@ -66,12 +73,53 @@ public class Convex {
 	/**
 	 * Query using specific source code
 	 * @param code Source code in Convex Lisp
+	 * @return Result of query, as parsed JSON Object from query response
+	 */
+	public Map<String,Object> transact(String code) {
+		try {
+			return transactAsync(code).get();
+		} catch (Throwable e) {
+			throw new Error("Error completing transaction",e);
+		}
+	}
+	
+	public CompletableFuture<Map<String,Object>> transactAsync(String code) {
+		String json=buildJsonQuery(code);
+		CompletableFuture<Map<String,Object>> prep=doPostAsync(url+"/api/v1/transaction/prepare",json);
+		return prep.thenComposeAsync(r->{
+			Map<String,Object> result=r;
+			Hash hash=Hash.fromHex((String) result.get("hash"));
+			
+			try {
+				CompletableFuture<Map<String,Object>> tr = submitAsync(hash);
+				return tr;
+			} catch (Throwable e) {
+				throw new Error(e);
+			}
+			
+		});
+	}
+	
+	private CompletableFuture<Map<String,Object>> submitAsync(Hash hash) {
+		ASignature sd=getKeyPair().sign(hash);
+		HashMap<String,Object> req=new HashMap<>();
+		req.put("address", getAddress().longValue());
+		req.put("hash", hash.toHexString());
+		req.put("account_key", getKeyPair().getAccountKey().toHexString());
+		req.put("sig", sd.toHexString());
+		String json=JSON.toPrettyString(req);
+		System.out.println("Submitting:\n "+json);
+		return doPostAsync(url+"/api/v1/transaction/submit",json);
+	}
+
+	/**
+	 * Query using specific source code
+	 * @param code Source code in Convex Lisp
 	 * @return Future to be completed with result of query, as parsed JSON Object from query response
 	 */
-	@SuppressWarnings("unchecked")
-	public <T> CompletableFuture<T> queryAsync(String code) {
+	public CompletableFuture<Map<String,Object>> queryAsync(String code) {
 		String json=buildJsonQuery(code);
-		return (CompletableFuture<T>) doPostAsync(url+"/api/v1/query",json);
+		return doPostAsync(url+"/api/v1/query",json);
 	}
 	
 	private String buildJsonQuery(String code) {
@@ -82,17 +130,15 @@ public class Convex {
 		return json;
 	}
 	
-
-	@SuppressWarnings("unchecked")
-	private <T> T doPost(String endPoint, String json) {
+	private Map<String,Object> doPost(String endPoint, String json) {
 		try {
-			return (T) doPostAsync(endPoint,json).get();
+			return doPostAsync(endPoint,json).get();
 		} catch (Throwable  e) {
 			throw new Error("Failed to complete HTTP request",e);
 		}
 	}
 	
-	private CompletableFuture<Object> doPostAsync(String endPoint, String json) {
+	private CompletableFuture<Map<String,Object>> doPostAsync(String endPoint, String json) {
 		HttpPost post=new HttpPost(endPoint);
 		post.addHeader("content-type", "application/json");
 		StringEntity entity;
@@ -104,7 +150,7 @@ public class Convex {
 				try {
 					return JSON.parse(response.getEntity().getContent());
 				} catch (Throwable e) {
-					throw new Error(e);
+					throw new Error("Error handling response:" +response,e);
 				}
 			});
 			
