@@ -16,6 +16,7 @@ import convex.core.crypto.AKeyPair;
 import convex.core.crypto.ASignature;
 import convex.core.crypto.Hash;
 import convex.core.data.Address;
+import convex.core.util.Utils;
 
 public class Convex {
 	private static final CloseableHttpAsyncClient httpasyncclient = HttpAsyncClients.createDefault();
@@ -79,7 +80,7 @@ public class Convex {
 		try {
 			return transactAsync(code).get();
 		} catch (Throwable e) {
-			throw new Error("Error completing transaction",e);
+			throw Utils.sneakyThrow(e);
 		}
 	}
 	
@@ -94,7 +95,7 @@ public class Convex {
 				CompletableFuture<Map<String,Object>> tr = submitAsync(hash);
 				return tr;
 			} catch (Throwable e) {
-				throw new Error(e);
+				throw Utils.sneakyThrow(e);
 			}
 			
 		});
@@ -108,7 +109,7 @@ public class Convex {
 		req.put("account_key", getKeyPair().getAccountKey().toHexString());
 		req.put("sig", sd.toHexString());
 		String json=JSON.toPrettyString(req);
-		System.out.println("Submitting:\n "+json);
+		// System.out.println("Submitting:\n "+json);
 		return doPostAsync(url+"/api/v1/transaction/submit",json);
 	}
 
@@ -134,7 +135,7 @@ public class Convex {
 		try {
 			return doPostAsync(endPoint,json).get();
 		} catch (Throwable  e) {
-			throw new Error("Failed to complete HTTP request",e);
+			throw Utils.sneakyThrow(e);
 		}
 	}
 	
@@ -155,7 +156,7 @@ public class Convex {
 			});
 			
 		} catch (Throwable e) {
-			throw new Error(e);
+			throw Utils.sneakyThrow(e);
 		}
 	}
 	
