@@ -2,6 +2,7 @@ package convex.java;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -12,13 +13,21 @@ import org.junit.jupiter.api.Test;
 import convex.core.Init;
 import convex.core.data.Address;
 
-public class TestRemoteClient {
+public class RemoteClientTest {
 	
 	@Test public void testQuery() {
 		Convex convex=Convex.connect("http://34.89.82.154:3000", Init.HERO, Init.HERO_KP);
 		Map<String,Object> result=convex.query ("*address*");
 		assertNotNull(result);
 		assertEquals(Init.HERO,Address.parse("#"+result.get("value")));
+	}
+	
+	@Test public void testQueryAccount() {
+		Convex convex=Convex.connect("http://34.89.82.154:3000", Init.HERO, Init.HERO_KP);
+		Map<String,Object> result=convex.queryAccount(Init.HERO);
+		assertNotNull(result);
+		assertTrue(result.containsKey("sequence"));
+		assertTrue(result.containsKey("memory_size"));
 	}
 	
 	@Test public void testQueryAsync() throws InterruptedException, ExecutionException {

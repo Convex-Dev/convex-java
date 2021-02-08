@@ -6,7 +6,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
@@ -69,6 +71,24 @@ public class Convex {
 	public Map<String,Object> query(String code) {
 		String json=buildJsonQuery(code);
 		return doPost(url+"/api/v1/query",json);
+	}
+	
+	/**
+	 * Query account details on the network.
+	 * @param code Account Address to query
+	 * @return Result of query, as parsed JSON Object from query response
+	 */
+	public Map<String,Object> queryAccount(Address address) {
+		return doGet(url+"/api/v1/accounts/"+address.longValue());
+	}
+	
+	/**
+	 * Query account details on the network asynchronously.
+	 * @param code Account Address to query
+	 * @return Result of query, as Future for parsed JSON Object from query response
+	 */
+	public CompletableFuture<Map<String,Object>> queryAccountAsync(Address address) {
+		return doGetAsync(url+"/api/v1/accounts/"+address.longValue());
 	}
 	
 	/**
@@ -139,14 +159,33 @@ public class Convex {
 		}
 	}
 	
+	private Map<String,Object> doGet(String endPoint) {
+		try {
+			return doGetAsync(endPoint).get();
+		} catch (Throwable  e) {
+			throw Utils.sneakyThrow(e);
+		}
+	}
+	
 	private CompletableFuture<Map<String,Object>> doPostAsync(String endPoint, String json) {
 		HttpPost post=new HttpPost(endPoint);
-		post.addHeader("content-type", "application/json");
-		StringEntity entity;
+		return doRequest(post,json);
+	}
+	
+	private CompletableFuture<Map<String,Object>> doGetAsync(String endPoint) {
+		HttpGet post=new HttpGet(endPoint);
+		return doRequest(post,null);
+	}
+	
+	private CompletableFuture<Map<String,Object>> doRequest(HttpUriRequest request, String json) {
 		try {
-			entity = new StringEntity(json);
-			post.setEntity(entity);
-			CompletableFuture<HttpResponse> future=toCompletableFuture(fc -> httpasyncclient.execute(post, (FutureCallback<HttpResponse>) fc));
+			if (json!=null) {
+				request.addHeader("content-type", "application/json");
+				StringEntity entity;
+				entity = new StringEntity(json);
+				((HttpPost)request).setEntity(entity);
+			}
+			CompletableFuture<HttpResponse> future=toCompletableFuture(fc -> httpasyncclient.execute(request, (FutureCallback<HttpResponse>) fc));
 			return future.thenApply(response->{
 				try {
 					return JSON.parse(response.getEntity().getContent());
