@@ -83,6 +83,20 @@ public class Convex {
 	}
 	
 	/**
+	 * Query account details on the network.
+	 * @param code Account Address to query
+	 * @return Result of query, as parsed JSON Object from query response
+	 */
+	public Map<String,Object> faucet(Address address, long requestedAmount) {
+		HashMap<String,Object> req=new HashMap<>();
+		req.put("address", address.longValue());
+		req.put("amount", requestedAmount);
+		String json=JSON.toPrettyString(req);
+
+		return doPost(url+"/api/v1/faucet",json);
+	}
+	
+	/**
 	 * Query account details on the network asynchronously.
 	 * @param code Account Address to query
 	 * @return Result of query, as Future for parsed JSON Object from query response

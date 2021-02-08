@@ -30,6 +30,7 @@ public class RemoteClientTest {
 		assertTrue(result.containsKey("memory_size"));
 	}
 	
+	
 	@Test public void testQueryAsync() throws InterruptedException, ExecutionException {
 		Convex convex=Convex.connect("http://34.89.82.154:3000", Init.HERO, Init.HERO_KP);
 		Future<Map<String,Object>> f=convex.queryAsync ("(+ 1 2)");
@@ -43,5 +44,17 @@ public class RemoteClientTest {
 		Map<String,Object> result=convex.transact ("(* 3 4)");
 		assertNotNull(result);
 		assertEquals(12L,result.get("value"),"Unexpected:"+JSON.toPrettyString(result));
+	}
+	
+	@Test public void testFaucet() {
+		Convex convex=Convex.connect("http://34.89.82.154:3000", Init.VILLAIN, Init.VILLAIN_KP);
+		Map<String,Object> acc1=convex.queryAccount(Init.VILLAIN);
+		Map<String,Object> freq=convex.faucet(Init.VILLAIN,999);
+		assertTrue(freq.containsKey("amount"),"Unexpected: "+freq);
+		Map<String,Object> acc2=convex.queryAccount(Init.VILLAIN);
+		long bal1=((Number)acc1.get("balance")).longValue();
+		long bal2=((Number)acc2.get("balance")).longValue();
+		
+		assertEquals(999,bal2-bal1);
 	}
 }
