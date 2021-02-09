@@ -11,19 +11,19 @@ Convex is an open, decentralised technology for the Internet of Value. Java is o
 
 You will need a connection to a peer on the Convex Network. Peers are servers which participate in the maintaining consensus on the Convex Network, by executing the CPoS consensus algorithm and validating transactions. It is easiest if you simply use the free public peer available at `https://convex.world`.
 
-```
-Convex convex=Convex.connect("https://convex.world");
+```java
+Convex convex = Convex.connect("https://convex.world");
 ```
 
 To utilise the network, you will need an account with available funds. On the Test Network, you can obtain one by requesting a new account with free balance (up to 10,000,000 Convex copper coins). This should be enough for most simple testing.
 
-```
+```java
 convex.useNewAccount(10000000);
 ```
 
 `convex-java` will automatically generate a new cryptographic key pair to secure your new account. Having a valid key pair for the account is the *only way* to successfully submit transactions for that Account on the Convex Network. If you want to access the key pair, you can use:
 
-```
+```java
 convex.getKeyPair()
 ```
 
