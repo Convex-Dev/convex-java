@@ -46,6 +46,14 @@ public class RemoteClientTest {
 		assertEquals(12L,result.get("value"),"Unexpected:"+JSON.toPrettyString(result));
 	}
 	
+	@Test public void testNewAccount() {
+		Convex convex=Convex.connect("http://34.89.82.154:3000");
+		Address addr=convex.useNewAccount(1000666);
+		assertNotNull(addr);
+		Map<String,Object> acc1=convex.queryAccount();
+		assertEquals(1000666,((Number)acc1.get("balance")).longValue());
+	}
+	
 	@Test public void testFaucet() {
 		Convex convex=Convex.connect("http://34.89.82.154:3000");
 		Address addr=convex.useNewAccount();

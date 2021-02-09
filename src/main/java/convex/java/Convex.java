@@ -95,6 +95,19 @@ public class Convex {
 		setKeyPair(keyPair);
 		return address;
 	}
+	
+	/**
+	 * Create a new account ready for use, creating a new Ed25519 key pair. This Convex connection instance will be set to use the new account.
+	 * 
+	 * Also requests funds for the new account from the Faucet
+	 * 
+	 * @return The Address of the new Account
+	 */
+	public Address useNewAccount(long fundsRequested) {
+		Address address=useNewAccount();
+		faucet(address,fundsRequested);
+		return address;
+	}
 
 	/**
 	 * Creates a new Account using the given key pair
