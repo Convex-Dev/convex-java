@@ -46,6 +46,13 @@ public class Convex {
 		this.url=peerServerURL;
 	}
 	
+	/**
+	 * Connect to Convex network with a given peer URL, address and keypair.
+	 * @param peerServerURL Peer server address, e.g. "https:/convex.world"
+	 * @param address Address to use for this connection
+	 * @param keyPair Key pair to use for this connection
+	 * @return New Convex instance with supplied connection details
+	 */
 	public static Convex connect(String peerServerURL, Address address,AKeyPair keyPair) {
 		Convex convex=new Convex(peerServerURL);
 		convex.setAddress(address);
@@ -53,6 +60,15 @@ public class Convex {
 		return convex;
 	}
 	
+	/**
+	 * Connect to Convex network with a given peer URL.
+	 * 
+	 * No Address or Keypair is set by default: user will either need to provide these later or
+	 * perform an action that creates a new account (e.g. `useNewAccount`)
+	 * 
+	 * @param peerServerURL Peer server address, e.g. "https:/convex.world"
+	 * @return New Convex instance with supplied connection details
+	 */
 	public static Convex connect(String peerServerURL) {
 		Convex convex=new Convex(peerServerURL);
 		return convex;
@@ -75,10 +91,20 @@ public class Convex {
 		return sequence;
 	}
 	
+	/**
+	 * Gets the Address associated with this Convex connection instance. May be null
+	 * @return Address of current account in use, or null if not set
+	 */
 	public Address getAddress() {
 		return address;
 	}
 	
+	/**
+	 * Gets the key pair associated with this Convex connection instance. May be null. A correct
+	 * key pair is required to submit any transactions for an Account.
+	 * 
+	 * @return Key pair for current account in use, or null if not set
+	 */
 	public AKeyPair getKeyPair() {
 		return keyPair;
 	}
@@ -212,13 +238,22 @@ public class Convex {
 		}
 	}
 	
+	/**
+	 * Asynchronously execute a transaction using the current Account. Requires
+	 * a valid key pair to be set up.
+	 * 
+	 * @param code Code to execute
+	 * @return Future for the transaction result.
+	 */
 	public CompletableFuture<Map<String,Object>> transactAsync(String code) {
+		// first to prepare step
 		String json=buildJsonQuery(code);
 		CompletableFuture<Map<String,Object>> prep=doPostAsync(url+"/api/v1/transaction/prepare",json);
+		// then do submit step
 		return prep.thenComposeAsync(r->{
 			Map<String,Object> result=r;
 			Hash hash=Hash.fromHex((String) result.get("hash"));
-			
+			if (hash==null) throw new Error("Transaction Hash not provided by server, got result: "+r);
 			try {
 				CompletableFuture<Map<String,Object>> tr = submitAsync(hash);
 				return tr;
@@ -229,6 +264,11 @@ public class Convex {
 		});
 	}
 	
+	/**
+	 * Asynchronously submit a transaction
+	 * @param hash
+	 * @return
+	 */
 	private CompletableFuture<Map<String,Object>> submitAsync(Hash hash) {
 		ASignature sd=getKeyPair().sign(hash);
 		HashMap<String,Object> req=new HashMap<>();
