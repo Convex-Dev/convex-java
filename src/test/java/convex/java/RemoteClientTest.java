@@ -62,7 +62,11 @@ public class RemoteClientTest {
 		}
 		Map<String,Object> result=r.get();
 		assertFalse(result.containsKey("errorCode"));
-		assertEquals(10L,result.get("value"));
+		assertEquals(9L,result.get("value"));
+		
+		// check we have consumed some balance for transactions
+		long finalBalance=convex.queryBalance();
+		assertTrue(finalBalance<1000666);
 	}
 	
 	@Test public void testFaucet() {

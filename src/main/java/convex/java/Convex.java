@@ -211,6 +211,25 @@ public class Convex {
 	}
 	
 	/**
+	 * Query the current Convex coin balance of the current Account
+	 * @return Coin Balance of Account, or null if the Account does not exist.
+	 */
+	public Long queryBalance() {
+		return queryBalance(getAddress());
+	}
+	
+	/**
+	 * Query the current Convex coin balance of a given Address
+	 * @param Address Address to query
+	 * @return Coin Balance of Account, or null if the Account does not exist.
+	 */
+	public Long queryBalance(Address address) {
+		if (address==null) throw new IllegalArgumentException("Non-null Address required");
+		Map<String,Object> response=queryAccount(address);
+		return (Long) response.get("balance");
+	}
+	
+	/**
 	 * Query account details on the network.
 	 * @param code Account Address to query
 	 * @return Result of query, as parsed JSON Object from query response
