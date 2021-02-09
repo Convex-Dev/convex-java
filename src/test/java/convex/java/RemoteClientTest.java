@@ -15,15 +15,17 @@ import convex.core.data.Address;
 
 public class RemoteClientTest {
 	
+	static final String TEST_PEER="http://34.89.82.154:3000";
+	
 	@Test public void testQuery() {
-		Convex convex=Convex.connect("http://34.89.82.154:3000", Init.HERO, Init.HERO_KP);
+		Convex convex=Convex.connect(TEST_PEER, Init.HERO, Init.HERO_KP);
 		Map<String,Object> result=convex.query ("*address*");
 		assertNotNull(result);
 		assertEquals(Init.HERO,Address.parse("#"+result.get("value")));
 	}
 	
 	@Test public void testQueryAccount() {
-		Convex convex=Convex.connect("http://34.89.82.154:3000", Init.HERO, Init.HERO_KP);
+		Convex convex=Convex.connect(TEST_PEER, Init.HERO, Init.HERO_KP);
 		Map<String,Object> result=convex.queryAccount(Init.HERO);
 		assertNotNull(result);
 		assertTrue(result.containsKey("sequence"));
@@ -32,7 +34,7 @@ public class RemoteClientTest {
 	
 	
 	@Test public void testQueryAsync() throws InterruptedException, ExecutionException {
-		Convex convex=Convex.connect("http://34.89.82.154:3000", Init.HERO, Init.HERO_KP);
+		Convex convex=Convex.connect(TEST_PEER, Init.HERO, Init.HERO_KP);
 		Future<Map<String,Object>> f=convex.queryAsync ("(+ 1 2)");
 		Map<String,Object> result=f.get();
 		assertNotNull(result);
@@ -40,14 +42,14 @@ public class RemoteClientTest {
 	}
 	
 	@Test public void testTransact() {
-		Convex convex=Convex.connect("http://34.89.82.154:3000", Init.VILLAIN, Init.VILLAIN_KP);
+		Convex convex=Convex.connect(TEST_PEER, Init.VILLAIN, Init.VILLAIN_KP);
 		Map<String,Object> result=convex.transact ("(* 3 4)");
 		assertNotNull(result);
 		assertEquals(12L,result.get("value"),"Unexpected:"+JSON.toPrettyString(result));
 	}
 	
 	@Test public void testNewAccount() {
-		Convex convex=Convex.connect("http://34.89.82.154:3000");
+		Convex convex=Convex.connect(TEST_PEER);
 		Address addr=convex.useNewAccount(1000666);
 		assertNotNull(addr);
 		Map<String,Object> acc1=convex.queryAccount();
@@ -55,7 +57,7 @@ public class RemoteClientTest {
 	}
 	
 	@Test public void testFaucet() {
-		Convex convex=Convex.connect("http://34.89.82.154:3000");
+		Convex convex=Convex.connect(TEST_PEER);
 		Address addr=convex.useNewAccount();
 		Map<String,Object> acc1=convex.queryAccount();
 		Map<String,Object> freq=convex.faucet(addr,999);
