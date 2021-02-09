@@ -93,6 +93,7 @@ public class Convex {
 		Address address=createAccount(keyPair);
 		setAddress(address);
 		setKeyPair(keyPair);
+		sequence=0L;
 		return address;
 	}
 	
