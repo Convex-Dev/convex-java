@@ -1,6 +1,7 @@
 package convex.java;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -48,12 +49,20 @@ public class RemoteClientTest {
 		assertEquals(12L,result.get("value"),"Unexpected:"+JSON.toPrettyString(result));
 	}
 	
-	@Test public void testNewAccount() {
+	@Test public void testNewAccount() throws InterruptedException, ExecutionException {
 		Convex convex=Convex.connect(TEST_PEER);
 		Address addr=convex.useNewAccount(1000666);
 		assertNotNull(addr);
 		Map<String,Object> acc1=convex.queryAccount();
 		assertEquals(1000666,((Number)acc1.get("balance")).longValue());
+		
+		Future<Map<String,Object>> r=null;
+		for (int i=0; i<10; i++) {
+			r=convex.transactAsync("(def a "+i+")");
+		}
+		Map<String,Object> result=r.get();
+		assertFalse(result.containsKey("errorCode"));
+		assertEquals(9L,result.get("value"));
 	}
 	
 	@Test public void testFaucet() {

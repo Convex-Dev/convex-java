@@ -86,8 +86,23 @@ public class Convex {
 	public Long getSequence() {
 		if (address==null) throw new IllegalStateException("Can't get sequence number because current Address is null");
 		if (sequence==null) {
-			sequence=querySequence(address);
+			sequence=querySequence();
 		}
+		return sequence;
+	}
+	
+	/**
+	 * Updates the sequence number for this account, to the maximum of the last observed sequence
+	 * number and the parameter provided.
+	 * 
+	 * @param seq Sequence number to set, or or the current sequence number if higher
+	 * @return Sequence number for the current account
+	 */
+	public long updateSequence(long seq) {
+		if (sequence==null) {
+			seq=Math.max(seq, sequence);
+		}
+		sequence=seq;
 		return sequence;
 	}
 	
@@ -174,6 +189,17 @@ public class Convex {
 	}
 	
 	/**
+	 * Query the current sequence number of the current Account set.
+	 * @return Sequence number of Account, or null if the Account does not exist.
+	 */
+	public Long querySequence() {
+		Address addr=getAddress();
+		Long seq = querySequence(addr);
+		if (seq!=null) updateSequence(seq);
+		return seq;
+	}
+	
+	/**
 	 * Query the current sequence number of a given Address
 	 * @param Address address to query
 	 * @return Sequence number of Account, or null if the Account does not exist.
@@ -252,6 +278,14 @@ public class Convex {
 		// then do submit step
 		return prep.thenComposeAsync(r->{
 			Map<String,Object> result=r;
+			if (r.get("errorCode")!=null) {
+				throw new Error("Error while preparing transaction: "+r);
+			}
+			
+			// check the sequence number from the server
+			Long seq=(Long)(r.get("sequence"));
+			if (seq!=null) updateSequence(seq);
+			
 			Hash hash=Hash.fromHex((String) result.get("hash"));
 			if (hash==null) throw new Error("Transaction Hash not provided by server, got result: "+r);
 			try {
