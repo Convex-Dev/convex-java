@@ -62,7 +62,7 @@ public class RemoteClientTest {
 		}
 		Map<String,Object> result=r.get();
 		assertFalse(result.containsKey("errorCode"));
-		assertEquals(9L,result.get("value"));
+		assertEquals(10L,result.get("value"));
 	}
 	
 	@Test public void testFaucet() {
