@@ -20,6 +20,16 @@ import convex.core.crypto.Hash;
 import convex.core.data.Address;
 import convex.core.util.Utils;
 
+/**
+ * This class represents a remote client connection to the Convex Network, which can connect to any 
+ * peer server that supports the REST Client API, e.g. the one at 'https://convex.world'
+ * 
+ * Although this class can be used concurrently from multiple threads, it is strongly recommended to
+ * avoid executing transactions that use the same the same Account from multiple threads 
+ * because each transaction requires incrementing a "sequence number" that may become mismatched 
+ * if concurrent transactions are submitted. Read-only actions (e.g. queries) do not have this 
+ * limitation.
+ */
 public class Convex {
 	private static final CloseableHttpAsyncClient httpasyncclient = HttpAsyncClients.createDefault();
 	
@@ -190,7 +200,7 @@ public class Convex {
 	}
 	
 	/**
-	 * Query using specific source code
+	 * Submit a transaction using specific source code
 	 * @param code Source code in Convex Lisp
 	 * @return Result of query, as parsed JSON Object from query response
 	 */
