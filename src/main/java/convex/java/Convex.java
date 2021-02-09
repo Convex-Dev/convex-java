@@ -43,7 +43,25 @@ public class Convex {
 		return convex;
 	}
 	
-	public long getSequence() {
+	public static Convex connect(String peerServerURL) {
+		Convex convex=new Convex(peerServerURL);
+		return convex;
+	}
+	
+	/**
+	 * Gets the current sequence number for this account. The sequence number is the last valid transaction 
+	 * submitted, and will be 0 for any new accounts.
+	 * 
+	 * If the sequence number is not known for the current connection, attempts to query the Account
+	 * set for the Address of the current connection.
+	 * 
+	 * @return Sequence number for the current account
+	 */
+	public Long getSequence() {
+		if (address==null) throw new IllegalStateException("Can't get sequence number because current Address is null");
+		if (sequence==null) {
+			sequence=querySequence(address);
+		}
 		return sequence;
 	}
 	
@@ -62,6 +80,38 @@ public class Convex {
 	public void setAddress(Address address) {
 		this.address=address;
 	}
+	
+	/**
+	 * Create a new account ready for use, creating a new Ed25519 key pair. 
+	 * 
+	 * This Convex connection instance will be set to use the new account.
+	 * 
+	 * @return The Address of the new Account
+	 */
+	public Address useNewAccount() {
+		AKeyPair keyPair=AKeyPair.generate();
+		Address address=createAccount(keyPair);
+		setAddress(address);
+		setKeyPair(keyPair);
+		return address;
+	}
+
+	/**
+	 * Creates a new Account using the given key pair
+	 * 
+	 * @param keyPair
+	 * @return Address of new account
+	 */
+	public Address createAccount(AKeyPair keyPair) {
+		if (keyPair==null) throw new IllegalArgumentException("createAccount requires a non-null valid keyPair");
+		HashMap<String,Object> req=new HashMap<>();
+		req.put("public_key", keyPair.getAccountKey().toHexString());
+		String json=JSON.toPrettyString(req);
+		Map<String,Object> response= doPost(url+"/api/v1/create-account",json);
+		Address address=Address.parse(response.get("address"));
+		if (address==null) throw new Error("Account creation failed: "+response);
+		return address;
+	}
 
 	/**
 	 * Query using specific source code
@@ -74,12 +124,32 @@ public class Convex {
 	}
 	
 	/**
+	 * Query the current sequence number of a given Address
+	 * @param Address address to query
+	 * @return Sequence number of Account, or null if the Account does not exist.
+	 */
+	public Long querySequence(Address address) {
+		if (address==null) throw new IllegalArgumentException("Non-null Address required");
+		Map<String,Object> response=queryAccount(address);
+		return (Long) response.get("sequence");
+	}
+	
+	/**
 	 * Query account details on the network.
 	 * @param code Account Address to query
 	 * @return Result of query, as parsed JSON Object from query response
 	 */
 	public Map<String,Object> queryAccount(Address address) {
 		return doGet(url+"/api/v1/accounts/"+address.longValue());
+	}
+	
+	/**
+	 * Query account details on the network for the currently set account
+	 * @return Result of query, as parsed JSON Object from query response
+	 */
+	public Map<String,Object> queryAccount() {
+		if (address==null) throw new IllegalStateException("No current Address set");
+		return queryAccount(address);
 	}
 	
 	/**
@@ -234,5 +304,7 @@ public class Convex {
         });
         return promise;
     }
+
+
 
 }

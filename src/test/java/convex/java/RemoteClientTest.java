@@ -47,11 +47,12 @@ public class RemoteClientTest {
 	}
 	
 	@Test public void testFaucet() {
-		Convex convex=Convex.connect("http://34.89.82.154:3000", Init.VILLAIN, Init.VILLAIN_KP);
-		Map<String,Object> acc1=convex.queryAccount(Init.VILLAIN);
-		Map<String,Object> freq=convex.faucet(Init.VILLAIN,999);
+		Convex convex=Convex.connect("http://34.89.82.154:3000");
+		Address addr=convex.useNewAccount();
+		Map<String,Object> acc1=convex.queryAccount();
+		Map<String,Object> freq=convex.faucet(addr,999);
 		assertTrue(freq.containsKey("amount"),"Unexpected: "+freq);
-		Map<String,Object> acc2=convex.queryAccount(Init.VILLAIN);
+		Map<String,Object> acc2=convex.queryAccount(addr);
 		long bal1=((Number)acc1.get("balance")).longValue();
 		long bal2=((Number)acc2.get("balance")).longValue();
 		
