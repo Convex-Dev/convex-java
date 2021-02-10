@@ -99,7 +99,7 @@ public class Convex {
 	 * @return Sequence number for the current account
 	 */
 	public long updateSequence(long seq) {
-		if (sequence==null) {
+		if (sequence!=null) {
 			seq=Math.max(seq, sequence);
 		}
 		sequence=seq;
@@ -170,7 +170,7 @@ public class Convex {
 	public Address createAccount(AKeyPair keyPair) {
 		if (keyPair==null) throw new IllegalArgumentException("createAccount requires a non-null valid keyPair");
 		HashMap<String,Object> req=new HashMap<>();
-		req.put("publicKey", keyPair.getAccountKey().toHexString());
+		req.put("accountKey", keyPair.getAccountKey().toHexString());
 		String json=JSON.toPrettyString(req);
 		Map<String,Object> response= doPost(url+"/api/v1/createAccount",json);
 		Address address=Address.parse(response.get("address"));
@@ -207,7 +207,9 @@ public class Convex {
 	public Long querySequence(Address address) {
 		if (address==null) throw new IllegalArgumentException("Non-null Address required");
 		Map<String,Object> response=queryAccount(address);
-		return (Long) response.get("sequence");
+		Long seq=(Long) response.get("sequence");
+		System.out.println("Queried sequence "+ seq + " for Address: "+address);
+		return seq;
 	}
 	
 	/**
@@ -290,7 +292,7 @@ public class Convex {
 	 * @param code Code to execute
 	 * @return Future for the transaction result.
 	 */
-	public CompletableFuture<Map<String,Object>> transactAsync(String code) {
+	public synchronized CompletableFuture<Map<String,Object>> transactAsync(String code) {
 		// first to prepare step
 		String json=buildJsonQuery(code);
 		CompletableFuture<Map<String,Object>> prep=doPostAsync(url+"/api/v1/transaction/prepare",json);
@@ -302,6 +304,7 @@ public class Convex {
 			}
 			
 			// check the sequence number from the server
+			// if our own sequence number is lower, we want to update it!
 			Long seq=(Long)(r.get("sequence"));
 			if (seq!=null) updateSequence(seq);
 			
