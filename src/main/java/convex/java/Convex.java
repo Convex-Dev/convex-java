@@ -170,9 +170,9 @@ public class Convex {
 	public Address createAccount(AKeyPair keyPair) {
 		if (keyPair==null) throw new IllegalArgumentException("createAccount requires a non-null valid keyPair");
 		HashMap<String,Object> req=new HashMap<>();
-		req.put("public_key", keyPair.getAccountKey().toHexString());
+		req.put("publicKey", keyPair.getAccountKey().toHexString());
 		String json=JSON.toPrettyString(req);
-		Map<String,Object> response= doPost(url+"/api/v1/create-account",json);
+		Map<String,Object> response= doPost(url+"/api/v1/createAccount",json);
 		Address address=Address.parse(response.get("address"));
 		if (address==null) throw new Error("Account creation failed: "+response);
 		return address;
@@ -327,7 +327,7 @@ public class Convex {
 		HashMap<String,Object> req=new HashMap<>();
 		req.put("address", getAddress().longValue());
 		req.put("hash", hash.toHexString());
-		req.put("account_key", getKeyPair().getAccountKey().toHexString());
+		req.put("accountKey", getKeyPair().getAccountKey().toHexString());
 		req.put("sig", sd.toHexString());
 		String json=JSON.toPrettyString(req);
 		// System.out.println("Submitting:\n "+json);

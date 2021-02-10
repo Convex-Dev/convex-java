@@ -16,7 +16,7 @@ import convex.core.data.Address;
 
 public class RemoteClientTest {
 	
-	static final String TEST_PEER="http://34.89.82.154:3000";
+	static final String TEST_PEER="https://convex.world";
 	
 	@Test public void testQuery() {
 		Convex convex=Convex.connect(TEST_PEER, Init.HERO, Init.HERO_KP);
@@ -30,7 +30,7 @@ public class RemoteClientTest {
 		Map<String,Object> result=convex.queryAccount(Init.HERO);
 		assertNotNull(result);
 		assertTrue(result.containsKey("sequence"));
-		assertTrue(result.containsKey("memory_size"));
+		assertTrue(result.containsKey("memorySize"));
 	}
 	
 	
