@@ -128,8 +128,11 @@ public class Convex {
 		this.keyPair=keyPair;
 	}
 
-	public void setAddress(Address address) {
+	public synchronized void setAddress(Address address) {
+		if (this.address==address) return;
 		this.address=address;
+		// clear sequence, since we don't know the new account sequence number yet
+		sequence=null;
 	}
 	
 	/**
@@ -297,26 +300,27 @@ public class Convex {
 		String json=buildJsonQuery(code);
 		CompletableFuture<Map<String,Object>> prep=doPostAsync(url+"/api/v1/transaction/prepare",json);
 		// then do submit step
-		return prep.thenComposeAsync(r->{
-			Map<String,Object> result=r;
-			if (r.get("errorCode")!=null) {
-				throw new Error("Error while preparing transaction: "+r);
+		return prep.thenCompose(r->{
+			synchronized( this) {
+				Map<String,Object> result=r;
+				if (r.get("errorCode")!=null) {
+					throw new Error("Error while preparing transaction: "+r);
+				}
+				
+				// check the sequence number from the server
+				// if our own sequence number is lower, we want to update it!
+				Long seq=(Long)(r.get("sequence"));
+				if (seq!=null) updateSequence(seq);
+				
+				Hash hash=Hash.fromHex((String) result.get("hash"));
+				if (hash==null) throw new Error("Transaction Hash not provided by server, got result: "+r);
+				try {
+					CompletableFuture<Map<String,Object>> tr = submitAsync(hash);
+					return tr;
+				} catch (Throwable e) {
+					throw Utils.sneakyThrow(e);
+				}
 			}
-			
-			// check the sequence number from the server
-			// if our own sequence number is lower, we want to update it!
-			Long seq=(Long)(r.get("sequence"));
-			if (seq!=null) updateSequence(seq);
-			
-			Hash hash=Hash.fromHex((String) result.get("hash"));
-			if (hash==null) throw new Error("Transaction Hash not provided by server, got result: "+r);
-			try {
-				CompletableFuture<Map<String,Object>> tr = submitAsync(hash);
-				return tr;
-			} catch (Throwable e) {
-				throw Utils.sneakyThrow(e);
-			}
-			
 		});
 	}
 	
@@ -349,7 +353,7 @@ public class Convex {
 	
 	private String buildJsonQuery(String code) {
 		HashMap<String,Object> req=new HashMap<>();
-		req.put("address", address.toString());
+		req.put("address", address.longValue());
 		req.put("source", code);
 		String json=JSON.toPrettyString(req);
 		return json;

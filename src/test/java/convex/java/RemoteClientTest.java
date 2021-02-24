@@ -56,12 +56,11 @@ public class RemoteClientTest {
 		Map<String,Object> acc1=convex.queryAccount();
 		assertEquals(1000666,((Number)acc1.get("balance")).longValue());
 		
-		Future<Map<String,Object>> r=null;
+		Map<String,Object> result=null;
 		for (int i=0; i<10; i++) {
-			r=convex.transactAsync("(def a "+i+")");
+			result=convex.transact("(def a "+i+")");
 		}
-		Map<String,Object> result=r.get();
-		assertFalse(result.containsKey("errorCode"));
+		assertFalse(result.containsKey("errorCode"),"Error: "+result);
 		assertEquals(9L,result.get("value"));
 		
 		// check we have consumed some balance for transactions
