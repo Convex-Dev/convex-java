@@ -13,6 +13,9 @@ import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+/**
+ * Simple JSON tools for working with Convex
+ */
 public class JSON {
 
     private static String WHITESPACE = "                                                             ";

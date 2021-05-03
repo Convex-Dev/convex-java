@@ -1,5 +1,6 @@
 package convex.java;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -35,6 +36,14 @@ public class Convex {
 	
 	static {
 		httpasyncclient.start();
+		convex.api.Shutdown.addHook(convex.api.Shutdown.CLIENTHTTP, ()->{
+			try {
+				httpasyncclient.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});
 	}
 	
 	private final String url;
