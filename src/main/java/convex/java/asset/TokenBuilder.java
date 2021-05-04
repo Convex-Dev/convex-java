@@ -4,6 +4,7 @@ import java.util.Map;
 
 import convex.core.data.ACell;
 import convex.core.data.AMap;
+import convex.core.data.Address;
 import convex.core.data.Keyword;
 import convex.core.data.Maps;
 import convex.core.data.prim.CVMLong;
@@ -47,9 +48,22 @@ public class TokenBuilder {
 		return sb.toString();
 	}
 	
-	public Map<String,Object> deploy(Convex convex) {
+	public Fungible deploy(Convex convex) {
 		String code=generateCode();
 		
-		return convex.transact(code);
+		Map<String,Object> result= convex.transact(code);
+		if (result.containsKey("errocCode")) throw new Error("Token deployment failed" + result);
+		
+		// should be a success, returning address
+		Object value=result.get("value");
+		if (value instanceof Long) {
+			Long aNum=(Long) value;
+			Address addr=Address.create(aNum);
+			return Fungible.create(convex, addr);
+		} else {
+			throw new Error("Unexpected return value: "+value);
+		}
 	}
+	
+	
 }

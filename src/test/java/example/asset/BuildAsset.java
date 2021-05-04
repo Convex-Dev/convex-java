@@ -1,10 +1,9 @@
 package example.asset;
 
-import java.util.Map;
-
 import convex.core.crypto.AKeyPair;
 import convex.core.data.Address;
 import convex.java.Convex;
+import convex.java.asset.Fungible;
 import convex.java.asset.TokenBuilder;
 
 public class BuildAsset {
@@ -31,11 +30,10 @@ public class BuildAsset {
 		convex.setAddress(address);
 		convex.setKeyPair(KP);
 		
-		
 		TokenBuilder tBuilder=new TokenBuilder().withSupply(1000000000); 
-		Map<String,Object> result=tBuilder.deploy(convex);
+		Fungible asset=tBuilder.deploy(convex);
 		
-		System.out.println(result);
+		System.out.println("Created fungible token: "+asset);
 		
 		System.exit(0);
 	}
