@@ -22,18 +22,26 @@ public class BuildAsset {
 		Convex convex=Convex.connect(TEST_PEER);
 		System.out.println("Hello Convex! Connected to "+TEST_PEER);
 		
+		// Create a new account
 		Address address = convex.createAccount(KP);
 		System.out.println("Created account "+address+" with public key "+KP.getAccountKey());
 		
+		// Request some convex coins for testing
+		System.out.println("Requesting Convex coins for testing");
 		convex.faucet(address, 100000000);
 		
+		// Set our connection to use the current address and key pair
 		convex.setAddress(address);
 		convex.setKeyPair(KP);
 		
+		// Deploy a new fungible token with a specified total supply
 		TokenBuilder tBuilder=new TokenBuilder().withSupply(1000000000); 
 		Fungible asset=tBuilder.deploy(convex);
-		
 		System.out.println("Created fungible token: "+asset);
+		
+		// Check our balance with the new token
+		Long balance = asset.getBalance();
+		System.out.println("Balance for address "+address.toString()+" is: "+balance);
 		
 		System.exit(0);
 	}

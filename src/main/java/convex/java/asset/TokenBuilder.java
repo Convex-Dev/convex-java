@@ -52,7 +52,7 @@ public class TokenBuilder {
 		String code=generateCode();
 		
 		Map<String,Object> result= convex.transact(code);
-		if (result.containsKey("errocCode")) throw new Error("Token deployment failed" + result);
+		if (result.containsKey("errorCode")) throw new Error("Token deployment failed" + result);
 		
 		// should be a success, returning address
 		Object value=result.get("value");
