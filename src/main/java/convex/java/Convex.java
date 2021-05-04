@@ -133,7 +133,11 @@ public class Convex {
 		return keyPair;
 	}
 	
-	private void setKeyPair(AKeyPair keyPair) {
+	/**
+	 * Sets this connection instance to use the specified keypair
+	 * @param keyPair
+	 */
+	public void setKeyPair(AKeyPair keyPair) {
 		this.keyPair=keyPair;
 	}
 
@@ -312,6 +316,9 @@ public class Convex {
 		return prep.thenCompose(r->{
 			synchronized( this) {
 				Map<String,Object> result=r;
+				if (r==null) {
+					throw new Error("Null response from transaction prepare!: "+r);
+				}
 				if (r.get("errorCode")!=null) {
 					throw new Error("Error while preparing transaction: "+r);
 				}
