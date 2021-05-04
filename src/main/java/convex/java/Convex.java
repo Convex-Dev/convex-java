@@ -266,8 +266,10 @@ public class Convex {
 	}
 	
 	/**
-	 * Query account details on the network.
-	 * @param code Account Address to query
+	 * Request funds from the test network via the Faucet API.
+	 * 
+	 * @param address Destination address to get requested funds
+	 * @param requestedAmount Requested amount of funds in CC
 	 * @return Result of query, as parsed JSON Object from query response
 	 */
 	public Map<String,Object> faucet(Address address, long requestedAmount) {
