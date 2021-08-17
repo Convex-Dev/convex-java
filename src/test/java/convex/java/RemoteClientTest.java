@@ -10,24 +10,32 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import org.junit.jupiter.api.Test;
-
-import convex.core.Init;
+import convex.core.crypto.AKeyPair;
 import convex.core.data.Address;
 
 public class RemoteClientTest {
 	
 	static final String TEST_PEER="https://convex.world";
 	
+	public Convex getNewConvex() {
+		AKeyPair kp=AKeyPair.generate();
+		Convex convex=Convex.connect(TEST_PEER);
+		Address addr=convex.createAccount(kp);
+		convex.setAddress(addr);
+		convex.setKeyPair(kp);
+		return convex;
+	}
+	
 	@Test public void testQuery() {
-		Convex convex=Convex.connect(TEST_PEER, Init.HERO, Init.HERO_KP);
+		Convex convex=getNewConvex();
 		Map<String,Object> result=convex.query ("*address*");
 		assertNotNull(result);
-		assertEquals(Init.HERO,Address.parse("#"+result.get("value")));
+		assertEquals(convex.getAddress(),result.get("value"));
 	}
 	
 	@Test public void testQueryAccount() {
-		Convex convex=Convex.connect(TEST_PEER, Init.HERO, Init.HERO_KP);
-		Map<String,Object> result=convex.queryAccount(Init.HERO);
+		Convex convex=getNewConvex();
+		Map<String,Object> result=convex.queryAccount(convex.getAddress());
 		assertNotNull(result);
 		assertTrue(result.containsKey("sequence"));
 		assertTrue(result.containsKey("memorySize"));
@@ -35,7 +43,7 @@ public class RemoteClientTest {
 	
 	
 	@Test public void testQueryAsync() throws InterruptedException, ExecutionException {
-		Convex convex=Convex.connect(TEST_PEER, Init.HERO, Init.HERO_KP);
+		Convex convex=getNewConvex();
 		Future<Map<String,Object>> f=convex.queryAsync ("(+ 1 2)");
 		Map<String,Object> result=f.get();
 		assertNotNull(result);
@@ -43,14 +51,14 @@ public class RemoteClientTest {
 	}
 	
 	@Test public void testTransact() {
-		Convex convex=Convex.connect(TEST_PEER, Init.VILLAIN, Init.VILLAIN_KP);
+		Convex convex=getNewConvex();
 		Map<String,Object> result=convex.transact ("(* 3 4)");
 		assertNotNull(result);
 		assertEquals(12L,result.get("value"),"Unexpected:"+JSON.toPrettyString(result));
 	}
 	
 	@Test public void testNewAccount() throws InterruptedException, ExecutionException {
-		Convex convex=Convex.connect(TEST_PEER);
+		Convex convex=getNewConvex();
 		Address addr=convex.useNewAccount(1000666);
 		assertNotNull(addr);
 		Map<String,Object> acc1=convex.queryAccount();

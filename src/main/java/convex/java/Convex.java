@@ -17,9 +17,10 @@ import org.apache.http.impl.nio.client.HttpAsyncClients;
 
 import convex.core.crypto.AKeyPair;
 import convex.core.crypto.ASignature;
-import convex.core.crypto.Hash;
 import convex.core.data.Address;
+import convex.core.data.Hash;
 import convex.core.util.Utils;
+import convex.core.util.Shutdown;
 
 /**
  * This class represents a remote client connection to the Convex Network, which can connect to any 
@@ -36,7 +37,7 @@ public class Convex {
 	
 	static {
 		httpasyncclient.start();
-		convex.api.Shutdown.addHook(convex.api.Shutdown.CLIENTHTTP, ()->{
+		Shutdown.addHook(Shutdown.CLIENTHTTP, ()->{
 			try {
 				httpasyncclient.close();
 			} catch (IOException e) {
@@ -169,6 +170,7 @@ public class Convex {
 	 * 
 	 * Also requests funds for the new account from the Faucet
 	 * 
+	 * @param fundsRequested Funds requested from faucet
 	 * @return The Address of the new Account
 	 */
 	public Address useNewAccount(long fundsRequested) {
@@ -189,7 +191,7 @@ public class Convex {
 		req.put("accountKey", keyPair.getAccountKey().toHexString());
 		String json=JSON.toPrettyString(req);
 		Map<String,Object> response= doPost(url+"/api/v1/createAccount",json);
-		Address address=Address.parse(response.get("address"));
+		Address address=Address.parse((String)response.get("address"));
 		if (address==null) throw new Error("Account creation failed: "+response);
 		return address;
 	}
@@ -217,7 +219,7 @@ public class Convex {
 	
 	/**
 	 * Query the current sequence number of a given Address
-	 * @param Address address to query
+	 * @param address address to query
 	 * @return Sequence number of Account, or null if the Account does not exist.
 	 */
 	public Long querySequence(Address address) {
@@ -238,7 +240,7 @@ public class Convex {
 	
 	/**
 	 * Query the current Convex coin balance of a given Address
-	 * @param Address Address to query
+	 * @param address Address to query
 	 * @return Coin Balance of Account, or null if the Account does not exist.
 	 */
 	public Long queryBalance(Address address) {
@@ -249,7 +251,7 @@ public class Convex {
 	
 	/**
 	 * Query account details on the network.
-	 * @param code Account Address to query
+	 * @param address Address to query
 	 * @return Result of query, as parsed JSON Object from query response
 	 */
 	public Map<String,Object> queryAccount(Address address) {
@@ -283,7 +285,7 @@ public class Convex {
 	
 	/**
 	 * Query account details on the network asynchronously.
-	 * @param code Account Address to query
+	 * @param address Address to query
 	 * @return Result of query, as Future for parsed JSON Object from query response
 	 */
 	public CompletableFuture<Map<String,Object>> queryAccountAsync(Address address) {
