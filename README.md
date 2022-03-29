@@ -1,3 +1,7 @@
+# IMPORTANT
+
+This repository is NO LONGER MAINTAINED as convex-java has become part of the main Convex build at https://github.com/Convex-Dev/convex . You can still use `convex-java` of course! But development continues in the main repository rather than here. This repo is being kept open at present for reference purposes.
+
 # convex-java
 Java client library for Convex
 
